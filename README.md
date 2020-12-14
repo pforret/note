@@ -10,7 +10,8 @@
 
 Bash note taking script
 
-## USAGE
+## Usage
+
     Program: note 1.0.0 by peter@forret.com
     Updated: 2020-12-14 23:00
     Usage: note [-h] [-q] [-v] [-f] [-n <note_dir>] [-l <log_dir>] <action> <input …>
@@ -20,8 +21,8 @@ Bash note taking script
         -v|--verbose   : [flag] output more [default: off]
         -f|--force     : [flag] do not ask for confirmation (always yes) [default: off]
         -n|--note_dir <val>: [optn] folder for note files   [default: /home/forretp/.note]
-        -l|--log_dir <val>: [optn] folder for log files   [default: /home/forretp/.note/.log]
-        <action>  : [parameter] action to perform: add/edit/find/list/paste
+        -l|--log_dir <val>:  [optn] folder for log files    [default: /home/forretp/.note/.log]
+        <action>  : [parameter] action to perform: add/edit/find/list/paste/show
         <input>   : [parameters] text to add (optional)
     
     ### EXAMPLES
@@ -49,10 +50,6 @@ or with `git`
 
 	$ git clone https://github.com/pforret/note.git
 	$ cd note
-
-## Usage
-
-	> note.sh [action]
 
 ## Acknowledgements
 
