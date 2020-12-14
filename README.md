@@ -23,7 +23,7 @@ Bash note taking script
         -n|--note_dir <val>: [optn] folder for note files   [default: /home/forretp/.note]
         -l|--log_dir <val>:  [optn] folder for log files    [default: /home/forretp/.note/.log]
         <action>  : [parameter] action to perform: add/edit/find/list/paste/show
-        <input>   : [parameters] text to add (optional)
+        <input>   : [parameter] text to add (optional)
     
     ### EXAMPLES
     * use `note add XYZ` to add one line/thought to your note file
