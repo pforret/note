@@ -11,7 +11,7 @@
 ### Created by Peter Forret ( pforret ) on 2020-12-14
 script_version="0.0.1"  # if there is a VERSION.md in this script's folder, it will take priority for version number
 readonly script_author="peter@forret.com"
-readonly script_created="2020-12-14"
+#readonly script_created="2020-12-14"
 readonly run_as_root=-1 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
 PFOR_NOTE_DIR=~/.note
 
@@ -100,8 +100,8 @@ perform_edit(){
 
 perform_find(){
   (
-  cd "$note_dir"
-  grep -r "$1" *
+  # shellcheck disable=SC2164
+  cd "$note_dir" && grep -r "$1" ./*
   )
 }
 
@@ -530,11 +530,6 @@ import_env_if_any(){
     log "Read config from [$script_install_folder/.env]"
     # shellcheck disable=SC1090
     source "$script_install_folder/.env"
-  fi
-  if [[ -f "./.env" ]] ; then
-    log "Read config from [./.env]"
-    # shellcheck disable=SC1090
-    source "./.env"
   fi
 }
 
