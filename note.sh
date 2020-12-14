@@ -4,39 +4,28 @@
 ### 1. define the options/parameters and defaults you need in list_options()
 ### 2. implement the different actions in main() with helper functions
 ### 3. implement helper functions you defined in previous step
-### 4. add binaries your script needs (e.g. ffmpeg, jq) to require_binaries
+### 4. add binaries your script need./note
+# s (e.g. ffmpeg, jq) to require_binaries
 ### ==============================================================================
 
 ### Created by Peter Forret ( pforret ) on 2020-12-14
-script_version="1.1.1"  # if there is a VERSION.md in this script's folder, it will take priority for version number
+script_version="0.0.1"  # if there is a VERSION.md in this script's folder, it will take priority for version number
 readonly script_author="peter@forret.com"
 readonly script_created="2020-12-14"
 readonly run_as_root=-1 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
+PFOR_NOTE_DIR=~/.note
 
 list_options() {
-  ### Change the next lines to reflect which flags/options/parameters you need
-  ### flag:   switch a flag 'on' / no extra parameter
-  ###     flag|<short>|<long>|<description>
-  ###     e.g. "-v" or "--verbose" for verbose output / default is always 'off'
-  ### option: set an option value / 1 extra parameter
-  ###     option|<short>|<long>|<description>|<default>
-  ###     e.g. "-e <extension>" or "--extension <extension>" for a file extension
-  ### param:  comes after the options
-  ###     param|<type>|<long>|<description>
-  ###     <type> = 1 for single parameters - e.g. param|1|output expects 1 parameter <output>
-  ###     <type> = ? for optional parameters - e.g. param|1|output expects 1 parameter <output>
-  ###     <type> = n for list parameter    - e.g. param|n|inputs expects <input1> <input2> ... <input99>
 echo -n "
 #commented lines will be filtered
 flag|h|help|show usage
 flag|q|quiet|no output
 flag|v|verbose|output more
 flag|f|force|do not ask for confirmation (always yes)
-option|l|log_dir|folder for log files |log
-option|t|tmp_dir|folder for temp files|.tmp
-param|1|action|action to perform: action1/action2/...
-param|?|input|input file
-param|?|output|output file
+option|n|note_dir|folder for note files |$PFOR_NOTE_DIR
+option|l|log_dir|folder for log files |$PFOR_NOTE_DIR/.log
+param|1|action|action to perform: add/edit/list/find
+param|?|input|text to add
 " | grep -v '^#'
 }
 
@@ -53,15 +42,29 @@ main() {
     log_to_file "[$script_basename] $script_version started"
     time_started=$(date '+%s')
 
+    # shellcheck disable=SC2154
+    folder_prep "$note_dir" 3650 # ten years
+    folder_prep "$note_dir/$execution_year" 3650 # ten years
+    note_file="$note_dir/$execution_year/$execution_day.$script_prefix.md"
+    folder_prep "log_dir" 30
+
     action=$(lower_case "$action")
     case $action in
-    action1 )
+    add )
         # shellcheck disable=SC2154
-        perform_action1 "$input" "$output"
+        perform_add "$input"
         ;;
 
-    action2 )
-        perform_action2 "$input" "$output"
+    edit )
+        perform_edit "$input"
+        ;;
+
+    list )
+        perform_list "$input"
+        ;;
+
+    find )
+        perform_find "$input"
         ;;
 
     *)
@@ -76,14 +79,30 @@ main() {
 ## Put your helper scripts here
 #####################################################################
 
-perform_action1(){
-  echo "ACTION 1"
-  # < "$1"  do_stuff > "$2"
+perform_add(){
+   echo "* $1" >> "$note_file"
 }
 
-perform_action2(){
-  echo "ACTION 2"
-  # < "$1"  do_other_stuff > "$2"
+perform_list(){
+
+  find "$note_dir" -type f -name \*.md \
+  | while read -r file ; do
+    out "$(basename "$file"): $(< "$file" wc -l) lines"
+    done
+}
+
+perform_edit(){
+  if [[ ! -f "$note_file" ]] ; then
+    upper_case "# $script_prefix $execution_day" > "$note_file"
+  fi
+  "$EDITOR" "$note_file"
+}
+
+perform_find(){
+  (
+  cd "$note_dir"
+  grep -r "$1" *
+  )
 }
 
 
@@ -272,6 +291,9 @@ show_usage() {
     if($2 == "1"){
           fulltext = fulltext sprintf("\n    %-10s: [parameter] %s","<"$3">",$4);
           oneline  = oneline " <" $3 ">"
+     } else if($2 == "?") {
+          fulltext = fulltext sprintf("\n    %-10s: [parameters] %s (optional)","<"$3">",$4);
+          oneline  = oneline " <" $3 " …>"
      } else {
           fulltext = fulltext sprintf("\n    %-10s: [parameters] %s (1 or more)","<"$3">",$4);
           oneline  = oneline " <" $3 " …>"
@@ -487,24 +509,11 @@ lookup_script_data(){
   # $script_prefix          = [<script>]
 
   [[ -f "$script_install_folder/VERSION.md" ]] && script_version=$(cat "$script_install_folder/VERSION.md")
-  if git status >/dev/null 2>&1 ; then
-    readonly in_git_repo=1
-  else
-    readonly in_git_repo=0
-  fi
 }
 
 prep_log_and_temp_dir(){
   tmp_file=""
   log_file=""
-  # shellcheck disable=SC2154
-  if is_not_empty "$tmp_dir" ; then
-    folder_prep "$tmp_dir" 1
-    tmp_file=$(mktemp "$tmp_dir/$execution_day.XXXXXX")
-    log "tmp_file: $tmp_file"
-    # you can use this teporary file in your program
-    # it will be deleted automatically if the program ends without problems
-  fi
   # shellcheck disable=SC2154
   if [[ -n "$log_dir" ]] ; then
     folder_prep "$log_dir" 7
@@ -534,11 +543,11 @@ import_env_if_any(){
 
 lookup_script_data
 
-# set default values for flags & options
-init_options
-
 # overwrite with .env if any
 import_env_if_any
+
+# set default values for flags & options
+init_options
 
 # overwrite with specified options if any
 parse_options "$@"
