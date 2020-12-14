@@ -24,7 +24,7 @@ flag|v|verbose|output more
 flag|f|force|do not ask for confirmation (always yes)
 option|n|note_dir|folder for note files |$PFOR_NOTE_DIR
 option|l|log_dir|folder for log files |$PFOR_NOTE_DIR/.log
-param|1|action|action to perform: add/edit/list/find
+param|1|action|action to perform: add/edit/find/list/paste
 param|?|input|text to add
 " | grep -v '^#'
 }
@@ -51,20 +51,34 @@ main() {
     action=$(lower_case "$action")
     case $action in
     add )
+    #TIP: use «note add XYZ» to add one line/thought to your note file
+    #TIP:> note add "line of text"
         # shellcheck disable=SC2154
         perform_add "$input"
         ;;
 
+    find )
+    #TIP: use «note find XYZ» to find a word/phrase in your note files
+    #TIP:> note find "DEVL"
+        perform_find "$input"
+        ;;
+
     edit )
-        perform_edit "$input"
+    #TIP: use «note edit» to open your current note file in your default editor
+    #TIP:> note edit
+        perform_edit
         ;;
 
     list )
-        perform_list "$input"
+    #TIP: use «note list» to show a list of all your note files with some stats
+    #TIP:> note list
+        perform_list
         ;;
 
-    find )
-        perform_find "$input"
+    paste )
+    #TIP: use «note paste» to paste the clipboard into your note file
+    #TIP:> note paste
+        perform_paste
         ;;
 
     *)
@@ -79,8 +93,15 @@ main() {
 ## Put your helper scripts here
 #####################################################################
 
+perform_show(){
+  lines=$(< "$note_file" wc -l | awk '{print $1 - 1}')
+  out "📝 $(basename "$note_file")  ($lines lines)"
+  tail -4 "$note_file"
+}
+
 perform_add(){
    echo "* $1" >> "$note_file"
+   perform_show
 }
 
 perform_list(){
@@ -101,16 +122,42 @@ perform_edit(){
 perform_find(){
   (
   # shellcheck disable=SC2164
-  cd "$note_dir" && grep -r "$1" ./*
+  cd "$note_dir" || return 0
+    grep -r "$1" ./* \
+  | while read -r line ; do
+      file="$(echo "$line" | cut -d: -f1)"
+      text="$(echo "$line" | cut -d: -f2-)"
+      out "${col_grn}$(basename "$file" .md)${col_reset}: $text"
+    done
   )
 }
 
 perform_paste(){
-  (
-  [[ "$os_name" = "Darwin" ]] && pbpaste
- #  [[ "$os_name" = "Linux" ]]
- # ue xsel or xclip
-  )
+  case $os_name in
+  Darwin)
+    # MacOS has pbpaste/pbcopy
+    pbpaste >> "$note_file"
+    ;;
+  Linux)
+    paste_method=""
+    if [[ -n "${DISPLAY:-}" ]] ; then
+      # X is running, xsel/xclip might work
+      [[ -n $(which xsel) ]] && paste_method="xsel"
+      [[ -n $(which xclip) ]] && paste_method="xclip"
+    else
+      # might be WSL
+      [[ -n $(which powershell.exe) ]] && paste_method="powershell"
+
+    fi
+    case $paste_method in
+      xsel)       xsel --clipboard --output         >> "$note_file" ;;
+      xclip)      xclip -selection clipboard -o     >> "$note_file" ;;
+      powershell) powershell.exe -command "Get-Clipboard" >> "$note_file" 2> /dev/null ;;
+      *)  die "Can't do paste on this machine, need xsel/xclip/WSL"
+    esac
+
+  esac
+  perform_show
 }
 
 
@@ -134,8 +181,6 @@ hash(){
     md5 | cut -c1-"$length"
   fi
 }
-#TIP: use «hash» to create short unique values of fixed length based on longer inputs
-#TIP:> url_contents="$domain.$(echo $url | hash 8).html"
 
 force=0
 help=0
@@ -168,8 +213,6 @@ readonly nbcols=$(tput cols 2>/dev/null || echo 80)
 readonly wprogress=$((nbcols - 5))
 
 out() { ((quiet)) || printf '%b\n' "$*";  }
-#TIP: use «out» to show any kind of output, except when option --quiet is specified
-#TIP:> out "User is [$USER]"
 
 progress() {
   ((quiet)) || (
@@ -180,29 +223,17 @@ progress() {
     fi
   )
 }
-#TIP: use «progress» to show one line of progress that will be overwritten by the next output
-#TIP:> progress "Now generating file $nb of $total ..."
 
 die()     { tput bel; out "${col_red}${char_fail} $script_basename${col_reset}: $*" >&2; safe_exit; }
 fail()    { tput bel; out "${col_red}${char_fail} $script_basename${col_reset}: $*" >&2; safe_exit; }
-#TIP: use «die» to show error message and exit program
-#TIP:> if [[ ! -f $output ]] ; then ; die "could not create output" ; fi
 
 alert()   { out "${col_red}${char_alrt}${col_reset}: $*" >&2 ; }                       # print error and continue
-#TIP: use «alert» to show alert/warning message but continue
-#TIP:> if [[ ! -f $output ]] ; then ; alert "could not create output" ; fi
 
 success() { out "${col_grn}${char_succ}${col_reset}  $*" ; }
-#TIP: use «success» to show success message but continue
-#TIP:> if [[ -f $output ]] ; then ; success "output was created!" ; fi
 
 announce(){ out "${col_grn}${char_wait}${col_reset}  $*"; sleep 1 ; }
-#TIP: use «announce» to show the start of a task
-#TIP:> announce "now generating the reports"
 
 log()   { ((verbose)) && out "${col_ylw}# $* ${col_reset}" >&2 ; }
-#TIP: use «log» to show information that will only be visible when -v is specified
-#TIP:> log "input file: [$inputname] - [$inputsize] MB"
 
 log_to_file(){
   echo "$(date '+%H:%M:%S') | $*" >> "$log_file"
@@ -210,8 +241,7 @@ log_to_file(){
 
 lower_case()   { echo "$*" | awk '{print tolower($0)}' ; }
 upper_case()   { echo "$*" | awk '{print toupper($0)}' ; }
-#TIP: use «lower_case» and «upper_case» to convert to upper/lower case
-#TIP:> param=$(lower_case $param)
+
 slugify()     {
     # shellcheck disable=SC2020
   lower_case "$*" \
@@ -227,12 +257,8 @@ slugify()     {
     }' \
   | cut -c1-50
   }
-#TIP: use «slugify» to convert a word/sentence with diacritcs, spaces, special chars in a string to use in e.g. a filename
-#TIP:> filename=temp.$(slugify $input_from_user).txt
 
 confirm() { is_set $force && return 0; read -r -p "$1 [y/N] " -n 1; echo " "; [[ $REPLY =~ ^[Yy]$ ]];}
-#TIP: use «confirm» for interactive confirmation before doing something
-#TIP:> if ! confirm "Delete file"; then ; echo "skip deletion" ;   fi
 
 ask() {
   # $1 = variable name
@@ -247,8 +273,6 @@ ask() {
     eval "$1=\"$ANSWER\""
   fi
 }
-#TIP: use «ask» for interactive setting of variables
-#TIP:> ask NAME "What is your name" "Peter"
 
 error_prefix="${col_red}>${col_reset}"
 trap "die \"ERROR \$? after \$SECONDS seconds \n\
@@ -267,13 +291,9 @@ safe_exit() {
 is_set()       { [[ "$1" -gt 0 ]]; }
 is_empty()     { [[ -z "$1" ]] ; }
 is_not_empty() { [[ -n "$1" ]] ; }
-#TIP: use «is_empty» and «is_not_empty» to test for variables
-#TIP:> if is_empty "$email" ; then ; echo "Need Email!" ; fi
 
 is_file() { [[ -f "$1" ]] ; }
 is_dir()  { [[ -d "$1" ]] ; }
-#TIP: use «is_file» and «is_dir» to test for files or folders
-#TIP:> if is_file "/etc/hosts" ; then ; cat "/etc/hosts" ; fi
 
 show_usage() {
   out "Program: ${col_grn}$script_basename $script_version${col_reset} by ${col_ylw}$script_author${col_reset}"
@@ -313,7 +333,7 @@ show_usage() {
 }
 
 show_tips(){
-  < "${BASH_SOURCE[0]}" grep -v "\$0" \
+  < "${BASH_SOURCE[0]}" grep -v '$col' \
   | awk "
   /TIP: / {\$1=\"\"; gsub(/«/,\"$col_grn\"); gsub(/»/,\"$col_reset\"); print \"*\" \$0}
   /TIP:> / {\$1=\"\"; print \" $col_ylw\" \$0 \"$col_reset\"}
@@ -362,8 +382,6 @@ folder_prep(){
       fi
   fi
 }
-#TIP: use «folder_prep» to create a folder if needed and otherwise clean up old files
-#TIP:> folder_prep "$log_dir" 7 # delete all files olders than 7 days
 
 expects_single_params(){
   list_options | grep 'param|1|' > /dev/null
@@ -532,9 +550,6 @@ prep_log_and_temp_dir(){
 }
 
 import_env_if_any(){
-  #TIP: use «.env» file in script folder / current folder to set secrets or common config settings
-  #TIP:> AWS_SECRET_ACCESS_KEY="..."
-
   if [[ -f "$script_install_folder/.env" ]] ; then
     log "Read config from [$script_install_folder/.env]"
     # shellcheck disable=SC1090
