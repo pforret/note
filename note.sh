@@ -142,10 +142,13 @@ perform_paste(){
     paste_method=""
     if [[ -n "${DISPLAY:-}" ]] ; then
       # X is running, xsel/xclip might work
+      # shellcheck disable=SC2230
       [[ -n $(which xsel) ]] && paste_method="xsel"
+      # shellcheck disable=SC2230
       [[ -n $(which xclip) ]] && paste_method="xclip"
     else
       # might be WSL
+      # shellcheck disable=SC2230
       [[ -n $(which powershell.exe) ]] && paste_method="powershell"
 
     fi
@@ -333,7 +336,7 @@ show_usage() {
 }
 
 show_tips(){
-  < "${BASH_SOURCE[0]}" grep -v '$col' \
+  < "${BASH_SOURCE[0]}" grep -v "\$0" \
   | awk "
   /TIP: / {\$1=\"\"; gsub(/«/,\"$col_grn\"); gsub(/»/,\"$col_reset\"); print \"*\" \$0}
   /TIP:> / {\$1=\"\"; print \" $col_ylw\" \$0 \"$col_reset\"}
