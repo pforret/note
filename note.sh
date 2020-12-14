@@ -7,10 +7,10 @@
 ### 4. add binaries your script needs (e.g. ffmpeg, jq) to require_binaries
 ### ==============================================================================
 
-### Created by author_name ( author_username ) on meta_thisday
+### Created by Peter Forret ( pforret ) on 2020-12-14
 script_version="1.1.1"  # if there is a VERSION.md in this script's folder, it will take priority for version number
-readonly script_author="author@email.com"
-readonly script_created="meta_thisday"
+readonly script_author="peter@forret.com"
+readonly script_created="2020-12-14"
 readonly run_as_root=-1 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
 
 list_options() {
