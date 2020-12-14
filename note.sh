@@ -105,6 +105,15 @@ perform_find(){
   )
 }
 
+perform_paste(){
+  (
+  [[ "$os_name" = "Darwin" ]] && pbpaste
+ #  [[ "$os_name" = "Linux" ]]
+ # ue xsel or xclip
+  )
+}
+
+
 
 #####################################################################
 ################### DO NOT MODIFY BELOW THIS LINE ###################
@@ -531,7 +540,7 @@ import_env_if_any(){
     # shellcheck disable=SC1090
     source "$script_install_folder/.env"
   fi
-}
+  }
 
 [[ $run_as_root == 1  ]] && [[ $UID -ne 0 ]] && die "user is $USER, MUST be root to run [$script_basename]"
 [[ $run_as_root == -1 ]] && [[ $UID -eq 0 ]] && die "user is $USER, CANNOT be root to run [$script_basename]"
