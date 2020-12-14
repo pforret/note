@@ -8,6 +8,8 @@
 
 # pforret/note
 
+![](note.jpg)
+
 Manage your notes, todo, ... with this nifty script (100% bash)
 
 ## Usage
