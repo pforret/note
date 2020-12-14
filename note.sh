@@ -24,7 +24,7 @@ flag|v|verbose|output more
 flag|f|force|do not ask for confirmation (always yes)
 option|n|note_dir|folder for note files |$PFOR_NOTE_DIR
 option|l|log_dir|folder for log files |$PFOR_NOTE_DIR/.log
-param|1|action|action to perform: add/edit/find/list/paste
+param|1|action|action to perform: add/edit/find/list/paste/show
 param|?|input|text to add
 " | grep -v '^#'
 }
@@ -43,7 +43,6 @@ main() {
     time_started=$(date '+%s')
 
     # shellcheck disable=SC2154
-    folder_prep "$note_dir" 3650 # ten years
     folder_prep "$note_dir/$execution_year" 3650 # ten years
     note_file="$note_dir/$execution_year/$execution_day.$script_prefix.md"
     folder_prep "log_dir" 30
@@ -75,6 +74,12 @@ main() {
         perform_list
         ;;
 
+    show|view )
+    #TIP: use «note show» to show today's note file
+    #TIP:> note show
+        perform_show
+        ;;
+
     paste )
     #TIP: use «note paste» to paste the clipboard into your note file
     #TIP:> note paste
@@ -95,13 +100,18 @@ main() {
 
 perform_show(){
   lines=$(< "$note_file" wc -l | awk '{print $1 - 1}')
-  out "📝 $(basename "$note_file")  ($lines lines)"
-  tail -4 "$note_file"
+  out "📝 ----- ${col_grn}$(basename "$note_file" .md)${col_reset} ----- ($lines lines) --------------------"
+  if [[ -n "${1:-}" ]] ; then
+    tail -"$1" "$note_file"
+  else
+    log " ----- $note_file"
+    cat "$note_file"
+  fi
 }
 
 perform_add(){
    echo "* $1" >> "$note_file"
-   perform_show
+   perform_show 4
 }
 
 perform_list(){
@@ -160,7 +170,7 @@ perform_paste(){
     esac
 
   esac
-  perform_show
+   perform_show 4
 }
 
 
@@ -544,6 +554,8 @@ lookup_script_data(){
 prep_log_and_temp_dir(){
   tmp_file=""
   log_file=""
+  # shellcheck disable=SC2154
+    folder_prep "$note_dir" 3650 # ten years
   # shellcheck disable=SC2154
   if [[ -n "$log_dir" ]] ; then
     folder_prep "$log_dir" 7
