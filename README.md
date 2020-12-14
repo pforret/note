@@ -6,13 +6,13 @@
 ![GH License](https://img.shields.io/github/license/pforret/note)
 [![basher install](https://img.shields.io/badge/basher-install-white?logo=gnu-bash&style=flat)](https://basher.gitparade.com/package/)
 
-# note
+# pforret/note
 
-Bash note taking script
+Manage your notes, todo, ... with this nifty script (100% bash)
 
 ## Usage
 
-    Program: note 1.0.0 by peter@forret.com
+    Program: note 1.1.0 by peter@forret.com
     Updated: 2020-12-14 23:00
     Usage: note [-h] [-q] [-v] [-f] [-n <note_dir>] [-l <log_dir>] <action> <input …>
     Flags, options and parameters:

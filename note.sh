@@ -334,7 +334,7 @@ show_usage() {
           fulltext = fulltext sprintf("\n    %-10s: [parameter] %s","<"$3">",$4);
           oneline  = oneline " <" $3 ">"
      } else if($2 == "?") {
-          fulltext = fulltext sprintf("\n    %-10s: [parameters] %s (optional)","<"$3">",$4);
+          fulltext = fulltext sprintf("\n    %-10s: [parameter] %s (optional)","<"$3">",$4);
           oneline  = oneline " <" $3 " …>"
      } else {
           fulltext = fulltext sprintf("\n    %-10s: [parameters] %s (1 or more)","<"$3">",$4);
