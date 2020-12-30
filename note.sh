@@ -1,17 +1,8 @@
 #!/usr/bin/env bash
-### ==============================================================================
-### SO HOW DO YOU PROCEED WITH YOUR SCRIPT?
-### 1. define the options/parameters and defaults you need in list_options()
-### 2. implement the different actions in main() with helper functions
-### 3. implement helper functions you defined in previous step
-### 4. add binaries your script need./note
-# s (e.g. ffmpeg, jq) to require_binaries
-### ==============================================================================
-
 ### Created by Peter Forret ( pforret ) on 2020-12-14
 script_version="0.0.1"  # if there is a VERSION.md in this script's folder, it will take priority for version number
 readonly script_author="peter@forret.com"
-#readonly script_created="2020-12-14"
+readonly script_created="2020-12-14"
 readonly run_as_root=-1 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
 PFOR_NOTE_DIR=~/.note
 
@@ -35,7 +26,7 @@ param|?|input|text to add
 
 main() {
     log "Program: $script_basename $script_version"
-    log "Updated: $script_modified"
+    log "Created: $script_created - $script_modified"
     log "Run as : $USER@$HOSTNAME"
     # add programs that need to be installed, like: tar, wget, ffmpeg, rsync, convert, curl, gawk ...
     require_binaries tput uname awk
@@ -573,7 +564,7 @@ lookup_script_data(){
   script_modified="??"
   os_name=$(uname -s)
   [[ "$os_name" = "Linux" ]]  && script_modified=$(stat -c %y    "$script_install_path" 2>/dev/null | cut -c1-16) # generic linux
-  [[ "$os_name" = "Darwin" ]] && script_modified=$(stat -f "%Sm" "$script_install_path" 2>/dev/null) # for MacOS
+  [[ "$os_name" = "Darwin" ]] && script_modified=$(stat -f "%Sm" -t "%Y-%m-%d" "$script_install_path" 2>/dev/null) # for MacOS
 
   log "Executing : [$script_install_path]"
   log "In folder : [$script_install_folder]"
