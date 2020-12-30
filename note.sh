@@ -560,11 +560,13 @@ lookup_script_data(){
 
   # cf https://stackoverflow.com/questions/59895/how-to-get-the-source-directory-of-a-bash-script-from-within-the-script-itself
   script_install_path="${BASH_SOURCE[0]}"
-  script_install_folder="$( cd -P "$( dirname "$script_install_path" )" >/dev/null 2>&1 && pwd )"
+  log "Script path: $script_install_path"
+  script_install_folder="$(cd -P "$(dirname "$script_install_path")" >/dev/null 2>&1 && pwd)"
   while [ -h "$script_install_path" ]; do
     # resolve symbolic links
-    script_install_folder="$( cd -P "$( dirname "$script_install_path" )" >/dev/null 2>&1 && pwd )"
     script_install_path="$(readlink "$script_install_path")"
+   log "Linked to: $script_install_path"
+   script_install_folder="$(cd -P "$(dirname "$script_install_path")" >/dev/null 2>&1 && pwd)"
     [[ "$script_install_path" != /* ]] && script_install_path="$script_install_folder/$script_install_path"
   done
 
