@@ -24,7 +24,7 @@ flag|v|verbose|output more
 flag|f|force|do not ask for confirmation (always yes)
 option|n|note_dir|folder for note files |$PFOR_NOTE_DIR
 option|l|log_dir|folder for log files |$PFOR_NOTE_DIR/.log
-param|1|action|action to perform: add/edit/find/list/paste/show
+param|1|action|action to perform: add/edit/find/list/paste/show/env
 param|?|input|text to add
 " | grep -v '^#'
 }
@@ -47,9 +47,11 @@ main() {
     note_file="$note_dir/$execution_year/$execution_day.$script_prefix.md"
     folder_prep "log_dir" 30
 
+    [[ -z "${EDITOR:-}" ]] && EDITOR="vi"
+
     action=$(lower_case "$action")
     case $action in
-    add )
+    add|new )
     #TIP: use «note add XYZ» to add one line/thought to your note file
     #TIP:> note add "line of text"
         # shellcheck disable=SC2154
@@ -84,6 +86,12 @@ main() {
     #TIP: use «note paste» to paste the clipboard into your note file
     #TIP:> note paste
         perform_paste
+        ;;
+
+    env|setenv )
+    #TIP: use «note env» to create a .env startup config and edit it
+    #TIP:> note env
+        perform_setenv
         ;;
 
     *)
@@ -173,6 +181,32 @@ perform_paste(){
    perform_show 4
 }
 
+perform_setenv(){
+  env_example="$script_install_folder/.env.example"
+  if [[ ${#env_files[@]} -gt 1 ]] ; then
+    out "Choose which config you want to edit:"
+    env_count=-1
+    for env_file in "${env_files[@]}" ; do
+      env_count=$((env_count + 1))
+      if [[ -f "$env_file" ]] ; then
+        echo "$env_count) $env_file (exists)"
+        env_example="$env_file"
+      else
+        echo "$env_count) $env_file (new)"
+      fi
+    done
+    ask env_choice "0 .. $env_count" 0
+    env_file=${env_files[$env_choice]}
+  else
+    env_file=${env_files[0]}
+  fi
+  log "Chosen config = [$env_file]"
+  if [[ ! -f "$env_file" ]] ; then
+    log "Create [$env_file] from [$env_example]"
+    cp "$env_example" "$env_file"
+  fi
+  "$EDITOR" "$env_file"
+}
 
 
 #####################################################################
@@ -238,7 +272,6 @@ progress() {
 }
 
 die()     { tput bel; out "${col_red}${char_fail} $script_basename${col_reset}: $*" >&2; safe_exit; }
-fail()    { tput bel; out "${col_red}${char_fail} $script_basename${col_reset}: $*" >&2; safe_exit; }
 
 alert()   { out "${col_red}${char_alrt}${col_reset}: $*" >&2 ; }                       # print error and continue
 
@@ -259,8 +292,8 @@ slugify()     {
     # shellcheck disable=SC2020
   lower_case "$*" \
   | tr \
-    'àáâäæãåāçćčèéêëēėęîïííīįìłñńôoöòóœøōõßśšûüùúūÿžźż' \
-    'aaaaaaaaccceeeeeeeiiiiiiilnnooooooooosssuuuuuyzzz' \
+    'àáâäæãåāçćčèéêëēėęîïííīįìłñńôöòóœøōõßśšûüùúūÿžźż' \
+    'aaaaaaaaccceeeeeeeiiiiiiilnnoooooooosssuuuuuyzzz' \
   | awk '{
     gsub(/[^0-9a-z ]/,"");
     gsub(/^\s+/,"");
@@ -565,12 +598,16 @@ prep_log_and_temp_dir(){
 }
 
 import_env_if_any(){
-  if [[ -f "$script_install_folder/.env" ]] ; then
-    log "Read config from [$script_install_folder/.env]"
-    # shellcheck disable=SC1090
-    source "$script_install_folder/.env"
-  fi
-  }
+  env_files=("$script_install_folder/.env" "$script_install_folder/$script_prefix.env")
+
+  for env_file in "${env_files[@]}" ; do
+    if [[ -f "$env_file" ]] ; then
+      log "Read config from [$env_file]"
+      # shellcheck disable=SC1090
+      source "$env_file"
+    fi
+  done
+}
 
 [[ $run_as_root == 1  ]] && [[ $UID -ne 0 ]] && die "user is $USER, MUST be root to run [$script_basename]"
 [[ $run_as_root == -1 ]] && [[ $UID -eq 0 ]] && die "user is $USER, CANNOT be root to run [$script_basename]"
