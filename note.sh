@@ -543,23 +543,35 @@ parse_options() {
   fi
 }
 
-lookup_script_data(){
+recursive_readlink(){
+  [[ ! -h "$1" ]] && echo "$1" && return 0
+  local file_folder
+  local link_folder
+  local link_name
+  file_folder="$(dirname "$1")"
+  local  symlink
+  symlink=$(readlink "$1")
+  link_folder=$(dirname "$symlink")
+  link_name=$(basename "$symlink")
+  [[ -z "$link_folder" ]] && link_folder="$file_folder"
+  [[ "$link_folder" = \.* ]] && link_folder="$(cd -P "$file_folder" && cd -P "$link_folder" >/dev/null 2>&1 && pwd)"
+  log "Symbolic ln: $1 -> [$symlink]"
+  recursive_readlink "$link_folder/$link_name"
+}
+
+lookup_script_data() {
   readonly script_prefix=$(basename "${BASH_SOURCE[0]}" .sh)
   readonly script_basename=$(basename "${BASH_SOURCE[0]}")
   readonly execution_day=$(date "+%Y-%m-%d")
-  readonly execution_year=$(date "+%Y")
 
-  # cf https://stackoverflow.com/questions/59895/how-to-get-the-source-directory-of-a-bash-script-from-within-the-script-itself
   script_install_path="${BASH_SOURCE[0]}"
   log "Script path: $script_install_path"
-  script_install_folder="$(cd -P "$(dirname "$script_install_path")" >/dev/null 2>&1 && pwd)"
-  while [ -h "$script_install_path" ]; do
-    # resolve symbolic links
-    script_install_path="$(readlink "$script_install_path")"
-   log "Linked to: $script_install_path"
-   script_install_folder="$(cd -P "$(dirname "$script_install_path")" >/dev/null 2>&1 && pwd)"
-    [[ "$script_install_path" != /* ]] && script_install_path="$script_install_folder/$script_install_path"
-  done
+  script_install_folder=$(dirname "$script_install_path")
+  script_install_name=$(basename "$script_install_path")
+  # if file was given with relative path
+  [[ "$script_install_folder" != /* ]] && script_install_folder="$(cd -P "$(dirname "$script_install_path")" >/dev/null 2>&1 && pwd)"
+  script_install_path=$(recursive_readlink "$script_install_folder/$script_install_name")
+  log "Actual path: $script_install_path"
 
   script_modified="??"
   os_name=$(uname -s)
