@@ -19,7 +19,10 @@ Manage your notes, todo, ... with this nifty script (100% bash)
 Program: note 1.3.0 by peter@forret.com
 Updated: Feb  5 21:57:53 2021
 Description: keep track of daily notes
-Usage: note [-h] [-q] [-v] [-f] [-n <note_dir>] [-l <log_dir>] [-e <extension>] [-t <editor>] [-p <prefix>] [-z <postfix>] <action> <input?>
+Usage: note [-h] [-q] [-v] [-f] 
+            [-n <note_dir>] [-l <log_dir>] 
+            [-e <extension>] [-t <editor>] [-p <prefix>] [-z <postfix>] 
+            <action> <input?>
 Flags, options and parameters:
     -h|--help        : [flag] show usage [default: off]
     -q|--quiet       : [flag] no output [default: off]
