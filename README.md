@@ -16,20 +16,25 @@ Manage your notes, todo, ... with this nifty script (100% bash)
 
 ```
 ### USAGE
-Program: note 1.2.1 by peter@forret.com
-Updated: Dec 30 11:33:13 2020
-Usage: note [-h] [-q] [-v] [-f] [-n <note_dir>] [-l <log_dir>] <action> <input …>
+Program: note 1.3.0 by peter@forret.com
+Updated: Feb  5 21:57:53 2021
+Description: keep track of daily notes
+Usage: note [-h] [-q] [-v] [-f] [-n <note_dir>] [-l <log_dir>] [-e <extension>] [-t <editor>] [-p <prefix>] [-z <postfix>] <action> <input?>
 Flags, options and parameters:
--h|--help      : [flag] show usage [default: off]
--q|--quiet     : [flag] no output [default: off]
--v|--verbose   : [flag] output more [default: off]
--f|--force     : [flag] do not ask for confirmation (always yes) [default: off]
--n|--note_dir <val>: [optn] folder for note files   [default: /Users/pforret/.note]
--l|--log_dir <val>: [optn] folder for log files   [default: /Users/pforret/.note/.log]
-<action>  : [parameter] action to perform: add/edit/find/list/paste/show/env
-<input>   : [parameter] text to add (optional)
+    -h|--help        : [flag] show usage [default: off]
+    -q|--quiet       : [flag] no output [default: off]
+    -v|--verbose     : [flag] output more [default: off]
+    -f|--force       : [flag] do not ask for confirmation (always yes) [default: off]
+    -n|--note_dir <?>: [option] folder for note files   [default: /Users/pforret/notes]
+    -l|--log_dir <?> : [option] folder for log files   [default: /Users/pforret/log/note]
+    -e|--extension <?>: [option] extension for note files  [default: md]
+    -t|--editor <?>  : [option] text editor to use  [default: vi]
+    -p|--prefix <?>  : [option] data to enter before the note
+    -z|--postfix <?> : [option] data to enter after the note  [default: pforret@Mac-mini.forret]
+    <action>         : [parameter] action to perform: add/edit/find/list/paste/show/check
+    <input>          : [parameter] text to add/search (optional)
 
-### SCRIPT AUTHORING TIPS
+### TIPS & EXAMPLES
 * use note add XYZ to add one line/thought to your note file
   note add "line of text"
 * use note find XYZ to find a word/phrase in your note files
@@ -42,8 +47,8 @@ Flags, options and parameters:
   note show
 * use note paste to paste the clipboard into your note file
   note paste
-* use note env to create a .env startup config and edit it
-  note env
+* use note check to check if this script is ready to execute and what values the options/flags are
+  note check
 ```      
 
 ## Installation
