@@ -4,7 +4,6 @@ script_version="0.0.1"  # if there is a VERSION.md in this script's folder, it w
 readonly script_author="peter@forret.com"
 readonly script_created="2020-12-14"
 readonly run_as_root=-1 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
-PFOR_NOTE_DIR=~/.note
 
 list_options() {
 echo -n "
@@ -46,6 +45,7 @@ main() {
     debug "YEAR FOLDER: $year_folder"
     [[ ! -d "$year_folder" ]] && mkdir -p "$year_folder"
 
+    # shellcheck disable=SC2154
     note_today="$year_folder/$execution_day.$script_prefix.$extension"
     debug "NOTE TODAY : $note_today"
     folder_prep "log_dir" 30
@@ -136,7 +136,7 @@ main() {
 
 do_show(){
   lines=$(< "$note_today" wc -l | awk '{print $1}')
-  out "📝 ----- ${col_grn}$(basename "$note_today" .$extension)${col_reset} ----- ($lines lines)"
+  out "📝 ----- ${col_grn}$(basename "$note_today" ".$extension")${col_reset} ----- ($lines lines)"
   if [[ -n "${1:-}" ]] ; then
     tail -"$1" "$note_today"
   else
