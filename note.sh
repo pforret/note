@@ -58,7 +58,9 @@ main() {
         #TIP:> note add "line of text"
         # shellcheck disable=SC2154
         note="$input"
+        # shellcheck disable=SC2154
         [[ -n "$prefix" ]] && note="$prefix: $note"
+        # shellcheck disable=SC2154
         [[ -n "$postfix" ]] && note="$note ($postfix)"
         echo "- $note" >> "$note_today"
         do_show 4
