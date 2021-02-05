@@ -120,6 +120,8 @@ main() {
       ## leave this default action, it will make it easier to test your script
       #TIP: use «$script_prefix check» to check if this script is ready to execute and what values the options/flags are
       #TIP:> $script_prefix check
+      #TIP: use «$script_prefix check > (...)/.env» to create a .env file with better config for daily use
+      #TIP:> $script_prefix check > "$script_install_folder/.env"
       do_check
     ;;
 
@@ -457,9 +459,11 @@ show_tips() {
   /TIP:> / {\$1=\"\"; print \" $col_ylw\" \$0 \"$col_reset\"}
   " |
     awk \
+      -v script_install_folder="$script_install_folder" \
       -v script_basename="$script_basename" \
       -v script_prefix="$script_prefix" \
       '{
+    gsub(/\$script_install_folder/,script_install_folder);
     gsub(/\$script_basename/,script_basename);
     gsub(/\$script_prefix/,script_prefix);
     print ;
